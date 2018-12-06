@@ -5,7 +5,7 @@
 (pushnew :clx-ext-xkeyboard *features*)
 
 (define-extension "XKEYBOARD"
-  :events () 
+  :events (xkb-event) 
   :errors (xkeyboard-error))
 
 (export '(+use-core-kbd+
@@ -59,6 +59,11 @@
 
 (define-error xkeyboard-error decode-core-error)
 
+;; A stub at least providing xkb-type
+(declare-event :xkb-event
+  ((or null card32) time)
+  (data xkb-type)
+  (card16 device))
 
 ;;; Types
 (defmacro define-card8-abrev (name)
@@ -489,6 +494,16 @@
 (export 'enable-xkeyboard)
 
 ;; (defun select-events (display))
+
+(defun xkb-select-all-events (display &optional (device +use-core-kbd+))
+  (with-buffer-request (display (xkeyboard-opcode display))
+    (data +select-events+)
+    (devicespec device)
+    (card16 #x0fff)
+    (card16 #x0000)
+    (card16 #xffff)
+    (card16 #x00ff)
+    (card16 #x00ff)))
 
 
 (defun xkb-bell (display &key (device +use-core-kbd+)
